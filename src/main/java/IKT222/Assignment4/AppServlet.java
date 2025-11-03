@@ -1,5 +1,6 @@
 package IKT222.Assignment4;
 
+import org.mindrot.jbcrypt.BCrypt;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -33,7 +34,7 @@ import org.eclipse.jetty.client.util.StringContentProvider;
 public class AppServlet extends HttpServlet {
 
   private static final String CONNECTION_URL = "jdbc:sqlite:db.sqlite3";
-  private static final String AUTH_QUERY = "select * from user where username='%s' and password='%s'";
+  private static final String AUTH_QUERY = "select password from user where username=?";
   private static final String SEARCH_QUERY = "select * from patient where surname like '%s'";
 
   private final String recaptchaSecret = "6LeOhAAsAAAAAN8EJncX5atw77itFQFf6EMh5w98";
@@ -167,10 +168,14 @@ public class AppServlet extends HttpServlet {
   }
 
   private boolean authenticated(String username, String password) throws SQLException {
-    String query = String.format(AUTH_QUERY, username, password);
-    try (Statement stmt = database.createStatement()) {
-      ResultSet results = stmt.executeQuery(query);
-      return results.next();
+    try (java.sql.PreparedStatement stmt = database.prepareStatement(AUTH_QUERY)) {
+      stmt.setString(1, username);
+      ResultSet results = stmt.executeQuery();
+      if (results.next()) {
+        String hashedPassword = results.getString("password");
+        return org.mindrot.jbcrypt.BCrypt.checkpw(password, hashedPassword);
+      }
+      return false;
     }
   }
 

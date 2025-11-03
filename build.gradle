@@ -13,14 +13,17 @@ dependencies {
     'org.eclipse.jetty.aggregate:jetty-all:9.4.24.v20191120',
     'org.freemarker:freemarker:2.3.29',
     'org.xerial:sqlite-jdbc:3.50.3.0',
-  'io.github.cdimascio:dotenv-java:3.0.0'
+    'io.github.cdimascio:dotenv-java:3.0.0',
+    'org.mindrot:jbcrypt:0.4'
   )
 
   runtimeOnly 'org.slf4j:slf4j-simple:2.0.13'
 }
 
 application {
-  mainClass = 'IKT222.Assignment4.AppServer'
+  // Allow overriding the main class via -PmainClass when running with Gradle.
+  // Default to the AppServer so normal runs behave the same.
+  mainClass = project.hasProperty('mainClass') ? project.getProperty('mainClass') : 'IKT222.Assignment4.AppServer'
 }
 
 idea {
@@ -28,6 +31,15 @@ idea {
     outputDir file('build/classes/main')
     testOutputDir file('build/classes/test')
   }
+}
+
+// Convenience task to run the one-off DB migration utility without fiddling with
+// Gradle project properties. Use `./gradlew runHashPasswords` to execute.
+task runHashPasswords(type: JavaExec) {
+  group = 'Migration'
+  description = 'Run HashPasswords to migrate plain-text passwords to BCrypt in the DB'
+  classpath = sourceSets.main.runtimeClasspath
+  main = 'IKT222.Assignment4.HashPasswords'
 }
 
 task submission(type: Zip) {

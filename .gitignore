@@ -1,0 +1,8 @@
+﻿.gradle/
+build/
+*.class
+db.sqlite3
+db.sqlite3.backup
+db.sqlite3.pre-migrate.backup
+*.pre-migrate.*
+*.backup
