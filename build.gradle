@@ -33,7 +33,7 @@ idea {
   }
 }
 
-// Convenience task to run the one-off DB migration utility without fiddling with
+// Convenience task to run the one-off DB migration utility without messing with
 // Gradle project properties. Use `./gradlew runHashPasswords` to execute.
 task runHashPasswords(type: JavaExec) {
   group = 'Migration'
@@ -42,22 +42,35 @@ task runHashPasswords(type: JavaExec) {
   main = 'IKT222.Assignment4.HashPasswords'
 }
 
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath
+    into 'lib'
+}
+
+// Task to run the password hashing test
+task testPasswordHashing(type: JavaExec) {
+    group = 'Verification'
+    description = 'Run TestPasswordHashing to verify BCrypt implementation'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'IKT222.Assignment4.TestPasswordHashing'
+}
+
 task submission(type: Zip) {
-  group = 'Submission'
-  description = 'Generates Zip archive suitable for submission.'
+    group = 'Submission'
+    description = 'Generates Zip archive suitable for submission.'
 
-  archiveFileName = 'submission.zip'
-  destinationDirectory = project.rootDir
+    archiveFileName = 'submission.zip'
+    destinationDirectory = project.rootDir
 
-  from("$project.rootDir") {
-    exclude 'submission.zip', 'build', '.git', '.gradle', '.idea'
-  }
+    from("$project.rootDir") {
+        exclude 'submission.zip', 'build', '.git', '.gradle', '.idea'
+    }
 
-  doFirst {
-    assert file("report.pdf").exists()
-  }
+    doFirst {
+        assert file("report.pdf").exists()
+    }
 
-  doLast {
-    logger.warn("submission.zip generated.")
-  }
+    doLast {
+        logger.warn("submission.zip generated.")
+    }
 }

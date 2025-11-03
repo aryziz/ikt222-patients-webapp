@@ -23,7 +23,7 @@ public class TestPasswordHashing {
                     String hashedPassword = user.getString("password");
                     
                     // Test 1: Check if the password is actually hashed
-                    System.out.println("\nTest 1: Checking if password is hashed");
+                    System.out.println("\nChecking if password is hashed");
                     if (hashedPassword.startsWith("$2a$") || hashedPassword.startsWith("$2b$")) {
                         System.out.println("Password is properly hashed with BCrypt");
                     } else {
