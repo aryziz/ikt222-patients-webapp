@@ -25,6 +25,7 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpRequest;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.util.StringContentProvider;
 
@@ -35,7 +36,7 @@ public class AppServlet extends HttpServlet {
   private static final String AUTH_QUERY = "select * from user where username='%s' and password='%s'";
   private static final String SEARCH_QUERY = "select * from patient where surname like '%s'";
 
-  private final String recaptchaSecret = System.getenv("RECAPTCHA_SECRET");
+  private final String recaptchaSecret = "6LeOhAAsAAAAAN8EJncX5atw77itFQFf6EMh5w98";
 
   private final java.util.concurrent.ConcurrentHashMap<String, Integer> failures = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -62,7 +63,8 @@ public class AppServlet extends HttpServlet {
               + "&response=" + URLEncoder.encode(token, String.valueOf(StandardCharsets.UTF_8))
               + "&remoteip=" + URLEncoder.encode(ip, String.valueOf(StandardCharsets.UTF_8));
 
-      HttpClient client = new HttpClient();
+      org.eclipse.jetty.util.ssl.SslContextFactory sslContextFactory = new SslContextFactory.Client();
+      HttpClient client = new HttpClient(sslContextFactory);
       client.start();
 
       try {
@@ -151,12 +153,15 @@ public class AppServlet extends HttpServlet {
         Template template = fm.getTemplate("details.html");
         template.process(model, response.getWriter());
       } else {
+          failures.merge("u:"+username, 1, Integer::sum);
+          failures.merge("i:"+ip, 1, Integer::sum);
         Template template = fm.getTemplate("invalid.html");
         template.process(null, response.getWriter());
       }
       response.setContentType("text/html");
       response.setStatus(HttpServletResponse.SC_OK);
     } catch (Exception error) {
+        error.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
   }
